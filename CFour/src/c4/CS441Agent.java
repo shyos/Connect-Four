@@ -4,7 +4,7 @@ package c4;
  * 
  * Framework'un sagladigi ozellikleri kullanarak yazildi
  * 
- * Derinlik sýnýrlamasýyla Alpha Beta Pruning Yöntemiyle Minimax algoritmasý implement edildi.
+ * Derinlik sinirlamasiyla Alpha Beta Pruning Yontemiyle Minimax algoritmasi implement edildi.
  * 
  * @author shy
  *
@@ -30,8 +30,13 @@ public class CS441Agent extends ConnectFour implements Agent {
 		for(int i=0; i< COLCOUNT; i++)
 		{
 			str += i + ": " + values[i] * fak + " - ";
-			if(isLegalMove(i) && values[i] * fak >= bestVal)
+			if(isLegalMove(i) && values[i] * fak > bestVal)
 				{ bestMove = i; bestVal = values[i] * fak; }
+			else if(isLegalMove(i) && values[i] *fak == bestVal && getEvalValue(i) > getEvalValue(bestMove))
+			{
+				bestMove = i; bestVal = values[i] * fak;
+			}
+				
 		}
 		System.out.println("Rates:" + str);
 		return bestMove;
@@ -95,17 +100,17 @@ public class CS441Agent extends ConnectFour implements Agent {
 	}
 	protected double alphaBetaPrune(int depth, double alpha, double beta, boolean isMaxing, int curPlayer, int move) {
 		double val = 0;
-		//System.out.println("Depth:" + depth + " a: "+ alpha + " b: " + beta + " isMax: " + isMaxing + " player: " + curPlayer + " prevmove: " + move);
-		if(hasWin(curPlayer)) return (curPlayer == PLAYER1 ? -1001 : 1001);
+		System.out.println("Depth:" + depth + " a: "+ alpha + " b: " + beta + " isMax: " + isMaxing + " player: " + curPlayer + " prevmove: " + move);
+		if(hasWin(curPlayer)) return (curPlayer == PLAYER1 ? -1*(1001 - depth) : (1001 - depth));
 		// En uca indiysek geri donelim
-		if(depth == 0) return (curPlayer == PLAYER1 ? getEvalValue(move) : -1*getEvalValue(move));
+		if(depth == 4) return (curPlayer == PLAYER1 ? getEvalValue(move) : getEvalValue(move)*-1);
 		
 		if(isMaxing) {
 			double bestVal = -9999;
 			for(int x = 0; x < COLCOUNT; x++) 
 				if (colHeight[x] < ROWCOUNT){
 				putPiece(curPlayer, x);
-				double result = alphaBetaPrune(depth-1, alpha, beta, false, curPlayer == PLAYER1 ? PLAYER2 : PLAYER1, x);
+				double result = alphaBetaPrune(depth+1, alpha, beta, false, curPlayer == PLAYER1 ? PLAYER2 : PLAYER1, x);
 				bestVal = (bestVal > result ? bestVal : result);
 				alpha = (alpha > bestVal ? alpha : bestVal);
 				removePiece(curPlayer, x);
@@ -119,7 +124,7 @@ public class CS441Agent extends ConnectFour implements Agent {
 			for(int x = 0; x < COLCOUNT; x++) {
 				if (colHeight[x] < ROWCOUNT) {		
 					putPiece(curPlayer, x);
-					double result = alphaBetaPrune(depth-1, alpha, beta, true, curPlayer == PLAYER1 ? PLAYER2 : PLAYER1, x);
+					double result = alphaBetaPrune(depth+1, alpha, beta, true, curPlayer == PLAYER1 ? PLAYER2 : PLAYER1, x);
 					bestVal = (bestVal > result ? result : bestVal);
 					beta = (beta > bestVal ? bestVal : beta);
 					removePiece(curPlayer, x);
@@ -153,9 +158,9 @@ public class CS441Agent extends ConnectFour implements Agent {
 					putPiece(player, colIndex);
 					double score = 0;
 					if(hasWin(otherPlayer))
-						score = (otherPlayer == PLAYER1 ? -1000 : 1000);
+						score = (otherPlayer == PLAYER1 ? -1001 : 1001);
 					else
-						score = alphaBetaPrune(4, -9999, 9999, false, otherPlayer, colIndex) + getEvalValue(colIndex);
+						score = alphaBetaPrune(0, -9999, 9999, false, otherPlayer, colIndex);
 					removePiece(player, colIndex);
 					values[colIndex] = score;
 				}
